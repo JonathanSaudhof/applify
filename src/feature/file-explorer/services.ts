@@ -1,9 +1,9 @@
 "use server";
 
-import { getAuthenticatedDrive } from "@/lib/google/drive";
+import gDriveService from "@/lib/google/drive";
 
 export async function getAllFilesInFolder(folderId?: string) {
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   try {
     const res = await drive.files.list({
@@ -19,7 +19,7 @@ export async function getAllFilesInFolder(folderId?: string) {
 }
 
 export async function downloadFile(fileId: string) {
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   try {
     const res = await drive.files.get(
@@ -55,7 +55,7 @@ export async function getOrCreateConfigFile() {
 }
 
 export async function getConfigFile() {
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   try {
     const fileList = await drive.files.list({
@@ -77,7 +77,7 @@ export async function getConfigFile() {
 }
 
 export async function createConfigFile(): Promise<Config> {
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   const res = await drive.files.create({
     requestBody: {
@@ -101,7 +101,7 @@ export async function getFileById(fileId: string | null) {
   if (!fileId) {
     return null;
   }
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   try {
     const fileContent = await drive.files.get({
@@ -117,7 +117,7 @@ export async function getFileById(fileId: string | null) {
 }
 
 export async function updateConfigFile(config: Config) {
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   const configFile = await getConfigFile();
 

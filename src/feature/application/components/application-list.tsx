@@ -1,7 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/server";
-import { Archive, File, Link, SquareArrowOutUpRight } from "lucide-react";
+import {
+  Archive,
+  File,
+  Link as LinkIcon,
+  SquareArrowOutUpRight,
+} from "lucide-react";
+import Link from "next/link";
 import { type Application } from "../schema";
 
 export default async function ApplicationsList({
@@ -37,7 +43,12 @@ function ApplicationItem(application: Readonly<Application>) {
         </div>
         <div className="flex flex-1 flex-col gap-1">
           <p className="text-xs text-gray-300">Job Title</p>
-          <p>{application.jobTitle}</p>
+          <Link
+            href={`/application/${application.folderId}`}
+            className="hover:underline"
+          >
+            {application.jobTitle}
+          </Link>
         </div>
         <div className="flex w-1/5 flex-col gap-1">
           <p className="text-xs text-gray-300">Status</p>
@@ -48,7 +59,7 @@ function ApplicationItem(application: Readonly<Application>) {
         {application.jobDescriptionUrl ? (
           <Button variant="ghost" asChild title="Job Description">
             <a href={application.jobDescriptionUrl} target="_blank">
-              <Link />
+              <LinkIcon />
             </a>
           </Button>
         ) : null}
@@ -105,7 +116,7 @@ function ApplicationItemSkeleton() {
       </div>
       <div className="flex w-1/6 justify-end border-l pl-4">
         <Button variant="ghost" title="Job Description" disabled>
-          <Link />
+          <LinkIcon />
         </Button>
         <Button variant="ghost" title="Document's Folder" disabled>
           <SquareArrowOutUpRight />

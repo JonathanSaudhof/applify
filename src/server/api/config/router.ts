@@ -3,10 +3,10 @@ import {
   getOrCreateConfigFile,
   updateConfigFile,
 } from "@/feature/file-explorer/services";
+import gDriveService from "@/lib/google/drive";
+import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { getDocumentById } from "@/lib/google/drive";
-import { unstable_cache } from "next/cache";
 
 export const cachedGetOrCreateConfigFile = (userId: string) =>
   unstable_cache(() => getOrCreateConfigFile(), [`config-${userId}`], {
@@ -15,7 +15,7 @@ export const cachedGetOrCreateConfigFile = (userId: string) =>
 
 const cachedGetTemplateFile = (userId: string) =>
   unstable_cache(
-    (documentId: string) => getDocumentById(documentId),
+    (documentId: string) => gDriveService.getDocumentById(documentId),
     [`template-${userId}`],
     {
       tags: [`config-${userId}`, `template-${userId}`],

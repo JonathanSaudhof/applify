@@ -1,7 +1,4 @@
-import {
-  type Application,
-  CreateApplicationSchema,
-} from "@/feature/application/schema";
+import { CreateApplicationSchema } from "@/feature/application/schema";
 import applicationService from "@/feature/application/service";
 import { getOrCreateConfigFile } from "@/feature/file-explorer/services";
 import { unstable_cache } from "next/cache";
@@ -11,7 +8,8 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const cachedApplications = (userId: string) =>
   unstable_cache(
-    (folderId: string) => applicationService.getAllApplications(folderId),
+    (folderId: string) =>
+      applicationService.getAllApplications({ folderId, userId }),
     [cacheTags.applications.list(userId)],
     {
       tags: [cacheTags.applications.list(userId)],
@@ -19,13 +17,13 @@ const cachedApplications = (userId: string) =>
     },
   );
 
-const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
+const cachedGetApplicationById = (applicationId: string, userId: string) =>
   unstable_cache(
-    () => applicationService.getMetaDataInFolder(applicationId),
-    [cacheTags.applications.metadata(applicationId)],
+    () => applicationService.getApplicationById({ applicationId }),
+    [cacheTags.applications.details(applicationId)],
     {
       tags: [
-        cacheTags.applications.list(userId),
+        cacheTags.applications.details(userId),
         cacheTags.applications.metadata(applicationId),
       ],
       revalidate: 60 * 60,
@@ -59,31 +57,22 @@ export const applicationsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
-      const rawApplications = await cachedApplications(ctx.session.user.id!)(
+      const applications = await cachedApplications(ctx.session.user.id!)(
         input.folderId,
       );
-
-      if (!rawApplications) {
-        return [];
-      }
-
-      const metadataFiles = await Promise.all(
-        rawApplications.map((application) =>
-          cachedGetMetaDataInFolder(application.id!, ctx.session.user.id!)(),
-        ),
-      );
-
-      const applications: Application[] = rawApplications.map(
-        (application, index) => {
-          const metadata = metadataFiles[index];
-          return {
-            folderId: application.id!,
-            companyName: application.name ?? "",
-            ...metadata!,
-          };
-        },
-      );
-
       return applications;
+    }),
+  getApplicationById: protectedProcedure
+    .input(
+      z.object({
+        applicationId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const data = await applicationService.getApplicationById({
+        applicationId: input.applicationId,
+      });
+
+      return data;
     }),
 });

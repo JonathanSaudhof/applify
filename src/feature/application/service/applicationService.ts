@@ -1,18 +1,28 @@
-import {
-  createNewFolder,
-  getAllFoldersInFolder,
-  getAuthenticatedDrive,
-  getFileInFolderByName,
-} from "@/lib/google/drive";
+import gDriveService from "@/lib/google/drive";
+import spreadsheetService from "@/lib/google/spreadsheet";
+import cacheTags from "@/server/api/cache-tags";
 import { auth } from "@/server/auth";
+import { unstable_cache } from "next/cache";
 import {
   ApplicationSchema,
-  type CreateApplication,
   type Application,
-} from "./schema";
-import spreadsheetService from "@/lib/google/spreadsheet";
+  type CreateApplication,
+} from "../schema";
 
-const createNewApplication = async ({
+const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
+  unstable_cache(
+    () => getMetaDataInFolder(applicationId),
+    [cacheTags.applications.metadata(applicationId)],
+    {
+      tags: [
+        cacheTags.applications.list(userId),
+        cacheTags.applications.metadata(applicationId),
+      ],
+      revalidate: 60 * 60,
+    },
+  );
+
+export async function createNewApplication({
   data,
   templateDocId,
   baseFolderId,
@@ -20,10 +30,13 @@ const createNewApplication = async ({
   data: CreateApplication;
   templateDocId: string;
   baseFolderId: string | null;
-}): Promise<Application | null> => {
+}): Promise<Application | null> {
   try {
     const session = await auth();
-    const folderId = await createNewFolder(data.companyName, baseFolderId);
+    const folderId = await gDriveService.createNewFolder(
+      data.companyName,
+      baseFolderId,
+    );
 
     if (!folderId) {
       throw new Error("Failed to create folder");
@@ -53,9 +66,9 @@ const createNewApplication = async ({
     console.error(error);
     return null;
   }
-};
+}
 
-async function copyTemplateDocument({
+export async function copyTemplateDocument({
   templateDocId,
   folderId,
   documentName,
@@ -64,7 +77,7 @@ async function copyTemplateDocument({
   folderId: string;
   documentName: string;
 }) {
-  const drive = await getAuthenticatedDrive();
+  const drive = await gDriveService.getAuthenticatedDrive();
 
   const document = await drive.files.copy({
     fileId: templateDocId,
@@ -125,9 +138,56 @@ async function createOverviewTable(
   ]);
 }
 
-async function getAllApplications(folderId: string) {
-  const folders = await getAllFoldersInFolder(folderId, false);
-  return folders;
+export async function getAllApplications({
+  folderId,
+  userId,
+}: {
+  folderId: string;
+  userId: string;
+}): Promise<Application[]> {
+  const rawApplications = await gDriveService.getAllFoldersInFolder(
+    folderId,
+    false,
+  );
+
+  if (!rawApplications) {
+    return [];
+  }
+
+  const metadataFiles = await Promise.all(
+    rawApplications.map((application) =>
+      cachedGetMetaDataInFolder(application.id!, userId)(),
+    ),
+  );
+
+  const applications: Application[] = rawApplications.map(
+    (application, index) => {
+      const metadata = metadataFiles[index];
+      return {
+        folderId: application.id!,
+        companyName: application.name ?? "",
+        ...metadata!,
+      };
+    },
+  );
+
+  return applications;
+}
+
+export async function getApplicationById({
+  applicationId,
+}: {
+  applicationId: string;
+}): Promise<Application> {
+  const application = await gDriveService.getFolderInformation(applicationId);
+
+  const metadata = await getMetaDataInFolder(applicationId);
+
+  return {
+    folderId: application.id!,
+    companyName: application.name ?? "",
+    ...metadata,
+  };
 }
 
 type Metadata = {
@@ -135,8 +195,8 @@ type Metadata = {
   jobTitle: string | null;
 };
 
-async function getMetaDataInFolder(folderId: string): Promise<Metadata> {
-  const file = await getFileInFolderByName(folderId, "metadata");
+export async function getMetaDataInFolder(folderId: string): Promise<Metadata> {
+  const file = await gDriveService.getFileInFolderByName(folderId, "metadata");
   if (!file?.id) {
     console.error("Metadata file not found in folder: ", folderId);
     return {
@@ -163,12 +223,3 @@ async function getMetaDataInFolder(folderId: string): Promise<Metadata> {
     jobTitle: (rows[0]?.get("title") as string) ?? null,
   };
 }
-
-const applicationService = {
-  createNewApplication,
-  copyTemplateDocument,
-  getAllApplications,
-  getMetaDataInFolder,
-};
-
-export default applicationService;
