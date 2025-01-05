@@ -21,7 +21,7 @@ export const ApplicationSchema = z.object({
   folderId: z.string(),
   jobTitle: z.string().nullable(),
   jobDescriptionUrl: z.string().url().nullable(),
-  applicationState: ApplicationStateSchema,
+  applicationState: ApplicationStateSchema.nullable(),
   companyName: z.string(),
 });
 

@@ -53,7 +53,7 @@ function ApplicationItem(application: Readonly<Application>) {
         </div>
         <div className="flex w-1/5 flex-col gap-1">
           <p className="text-xs text-gray-300">Status</p>
-          <p>Interview</p>
+          <p>{application.applicationState ?? "<no state>"}</p>
         </div>
       </div>
       <div className="flex w-1/6 justify-end border-l pl-4">

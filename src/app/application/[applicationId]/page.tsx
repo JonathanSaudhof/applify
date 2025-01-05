@@ -1,30 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import ApplicationTimeline from "@/feature/application/components/application-timeline";
+import ApplicationUpdateState from "@/feature/application/components/application-update-state";
 import {
   ApplicationEventSchema,
   type ApplicationEvent,
-  type ApplicationState,
 } from "@/feature/application/schema";
 import gDriveService from "@/lib/google/drive";
 import { api } from "@/trpc/server";
 import { Link, SquareArrowOutUpRight } from "lucide-react";
 import "react-vertical-timeline-component/style.min.css";
 import { z } from "zod";
-
-const applicationStates: ApplicationState[] = [
-  "applied",
-  "interview",
-  "offer",
-  "rejected",
-];
 
 export default async function ApplicationPage({
   params,
@@ -87,22 +72,7 @@ export default async function ApplicationPage({
         </div>
       </div>
       <div className="flex items-end gap-8 border-y py-8">
-        <div className="flex flex-col gap-2">
-          <Label>Update State: </Label>
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Application State" />
-            </SelectTrigger>
-            <SelectContent>
-              {applicationStates.map((state) => (
-                <SelectItem value={state} key={state}>
-                  {state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button>Update State</Button>
+        <ApplicationUpdateState application={application} />
       </div>
       <ApplicationTimeline events={events} />
     </section>

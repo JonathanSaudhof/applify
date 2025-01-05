@@ -7,6 +7,7 @@ import {
   ApplicationSchema,
   ApplicationStateSchema,
   type Application,
+  type ApplicationState,
   type CreateApplication,
 } from "../schema";
 
@@ -15,10 +16,7 @@ const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
     () => getMetaDataInFolder(applicationId),
     [cacheTags.applications.metadata(applicationId)],
     {
-      tags: [
-        cacheTags.applications.list(userId),
-        cacheTags.applications.metadata(applicationId),
-      ],
+      tags: [cacheTags.applications.list(userId)],
       revalidate: 60 * 60,
     },
   );
@@ -195,33 +193,73 @@ export async function getApplicationById({
 type Metadata = {
   jobDescriptionUrl: string | null;
   jobTitle: string | null;
+  applicationState: ApplicationState | null;
+};
+
+type MetadataFile = {
+  link: string;
+  title: string;
+  state?: ApplicationState;
 };
 
 export async function getMetaDataInFolder(folderId: string): Promise<Metadata> {
   const file = await gDriveService.getFileInFolderByName(folderId, "metadata");
+
   if (!file?.id) {
     console.error("Metadata file not found in folder: ", folderId);
     return {
       jobDescriptionUrl: null,
       jobTitle: null,
+      applicationState: null,
     };
   }
 
-  const rows = await spreadsheetService.readTable<{
-    link: string;
-    title: string;
-  }>(file.id, "overview");
+  const rows = await spreadsheetService.readTable<MetadataFile>(
+    file.id,
+    "overview",
+  );
 
   if (!rows.length || !rows) {
     console.error("Metadata table not found in file: ", file.id);
     return {
       jobDescriptionUrl: null,
       jobTitle: null,
+      applicationState: null,
     };
   }
 
   return {
     jobDescriptionUrl: (rows[0]?.get("link") as string) ?? null,
     jobTitle: (rows[0]?.get("title") as string) ?? null,
+    applicationState: (rows[0]?.get("state") as ApplicationState) ?? null,
   };
+}
+
+export async function updateApplicationState({
+  applicationId,
+  state,
+}: {
+  applicationId: string;
+  state: ApplicationState;
+}): Promise<void> {
+  const file = await gDriveService.getFileInFolderByName(
+    applicationId,
+    "metadata",
+  );
+
+  if (!file?.id) {
+    throw new Error("Metadata file not found in folder");
+  }
+
+  const rows = await spreadsheetService.readTable<MetadataFile>(
+    file.id,
+    "overview",
+  );
+
+  if (!rows.length || !rows) {
+    throw new Error("Metadata table not found in file");
+  }
+
+  rows[0]?.set("state", state);
+  await rows[0]?.save();
 }

@@ -1,9 +1,10 @@
-import type { Application } from "../schema";
+import type { Application, ApplicationState } from "../schema";
 import {
   createNewApplication,
   getAllApplications,
   getApplicationById,
   getMetaDataInFolder,
+  updateApplicationState,
 } from "./applicationService";
 
 interface ApplicationService {
@@ -21,6 +22,10 @@ interface ApplicationService {
     applicationId: string;
   }) => Promise<Application>;
   getMetaDataInFolder: typeof getMetaDataInFolder;
+  updateApplicationState: (args: {
+    applicationId: string;
+    state: ApplicationState;
+  }) => Promise<void>;
 }
 
 const applicationService: ApplicationService = {
@@ -28,6 +33,7 @@ const applicationService: ApplicationService = {
   getAllApplications,
   getApplicationById,
   getMetaDataInFolder,
+  updateApplicationState,
 };
 
 export default applicationService;

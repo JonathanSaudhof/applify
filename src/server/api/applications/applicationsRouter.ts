@@ -1,4 +1,7 @@
-import { CreateApplicationSchema } from "@/feature/application/schema";
+import {
+  ApplicationStateSchema,
+  CreateApplicationSchema,
+} from "@/feature/application/schema";
 import applicationService from "@/feature/application/service";
 import { getOrCreateConfigFile } from "@/feature/file-explorer/services";
 import { unstable_cache } from "next/cache";
@@ -55,11 +58,21 @@ export const applicationsRouter = createTRPCRouter({
         applicationId: z.string(),
       }),
     )
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       const data = await applicationService.getApplicationById({
         applicationId: input.applicationId,
       });
 
       return data;
+    }),
+  updateApplicationState: protectedProcedure
+    .input(
+      z.object({
+        applicationId: z.string(),
+        state: ApplicationStateSchema,
+      }),
+    )
+    .mutation(async ({ input }) => {
+      await applicationService.updateApplicationState(input);
     }),
 });
