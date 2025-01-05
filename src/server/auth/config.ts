@@ -81,6 +81,7 @@ export const authConfig = {
     async jwt({ token, account }) {
       if (account) {
         // First-time login, save the `access_token`, its expiry and the `refresh_token`
+
         return {
           ...token,
           access_token: account.access_token,
@@ -137,6 +138,11 @@ export const authConfig = {
     },
     async session({ session, token }) {
       session.error = token.error;
+
+      if (token?.sub) {
+        session.user.id = token.sub;
+      }
+
       return {
         ...session,
         refresh_token: token.refresh_token,

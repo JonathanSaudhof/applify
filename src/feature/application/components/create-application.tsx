@@ -20,11 +20,22 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { CreateApplicationSchema, type CreateApplication } from "../schema";
+import {
+  ApplicationStateSchema,
+  CreateApplicationSchema,
+  type CreateApplication,
+} from "../schema";
 import { invalidateApplicationsList } from "./actions/revalidation";
 
 export default function CreateApplicationContainer() {
@@ -56,6 +67,7 @@ function CreateApplicationForm({
       companyName: "",
       jobTitle: "",
       jobDescriptionUrl: "",
+      applicationState: ApplicationStateSchema.enum.created,
     },
     resolver: zodResolver(CreateApplicationSchema),
   });
@@ -134,6 +146,36 @@ function CreateApplicationForm({
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="applicationState"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Application State:</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder="Select Application State"
+                          defaultValue={ApplicationStateSchema.enum.created}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {ApplicationStateSchema.options.map((state) => (
+                        <SelectItem value={state} key={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

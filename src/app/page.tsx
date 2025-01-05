@@ -4,9 +4,7 @@ import ApplicationsList, {
 } from "@/feature/application/components/application-list";
 import CreateApplication from "@/feature/application/components/create-application";
 import { api, HydrateClient } from "@/trpc/server";
-import { FileInput } from "lucide-react";
 import { Suspense } from "react";
-import FileExplorer from "../feature/file-explorer/FileExplorer";
 
 export default async function Home() {
   const template = await api.config.getTemplateFile();
@@ -15,13 +13,6 @@ export default async function Home() {
   return (
     <HydrateClient>
       <main className="">
-        <header className="flex justify-between border-b-2 px-8 py-4">
-          <div className="flex gap-4">
-            <FileInput />
-            <h1 className="text-2xl font-semibold">Applify Moep</h1>
-          </div>
-          <FileExplorer defaultTemplateId={template?.documentId ?? null} />
-        </header>
         <section className="flex justify-between border-b-2 p-8">
           {template ? (
             <Button variant="outline" asChild>

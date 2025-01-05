@@ -1,6 +1,6 @@
+import { GoogleSpreadsheet } from "google-spreadsheet";
 import { google } from "googleapis";
 import { getOAuth } from "./auth";
-import { GoogleSpreadsheet } from "google-spreadsheet";
 
 export async function getAuthenticatedDrive() {
   return google.drive({ auth: await getOAuth(), version: "v3" });

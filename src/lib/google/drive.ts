@@ -1,16 +1,15 @@
-"use server";
 import { google } from "googleapis";
 import { getOAuth } from "./auth";
 
-export async function getAuthenticatedDocument() {
+async function getAuthenticatedDocument() {
   return google.docs({ auth: await getOAuth(), version: "v1" });
 }
 
-export async function getAuthenticatedDrive() {
+async function getAuthenticatedDrive() {
   return google.drive({ auth: await getOAuth(), version: "v3" });
 }
 
-export async function createNewFolder(
+async function createNewFolder(
   folderName: string,
   parentFolderId: string | null,
 ) {
@@ -27,10 +26,7 @@ export async function createNewFolder(
   return folder.data.id;
 }
 
-export async function getAllFoldersInFolder(
-  folderId: string,
-  filterTrashed = false,
-) {
+async function getAllFoldersInFolder(folderId: string, filterTrashed = false) {
   const drive = await getAuthenticatedDrive();
 
   const folders = await drive.files.list({
@@ -40,10 +36,7 @@ export async function getAllFoldersInFolder(
 
   return folders.data.files;
 }
-export async function getFileInFolderByName(
-  folderId: string,
-  fileName: string,
-) {
+async function getFileInFolderByName(folderId: string, fileName: string) {
   const drive = await getAuthenticatedDrive();
 
   const files = await drive.files.list({
@@ -54,7 +47,16 @@ export async function getFileInFolderByName(
   return files.data.files ? files.data.files[0] : undefined;
 }
 
-export async function getDocumentById(documentId: string) {
+async function getFolderInformation(folderId: string) {
+  const drive = await getAuthenticatedDrive();
+  const res = await drive.files.get({
+    fileId: folderId,
+    fields: "name, mimeType, id, parents",
+  });
+  return res.data;
+}
+
+async function getDocumentById(documentId: string) {
   const document = await getAuthenticatedDocument();
 
   try {
@@ -68,3 +70,20 @@ export async function getDocumentById(documentId: string) {
     return null;
   }
 }
+
+function getLinkFromFolderId(folderId: string) {
+  return `https://drive.google.com/drive/folders/${folderId}`;
+}
+
+const gDriveService = {
+  getFolderInformation,
+  getDocumentById,
+  getAuthenticatedDrive,
+  getAuthenticatedDocument,
+  createNewFolder,
+  getAllFoldersInFolder,
+  getFileInFolderByName,
+  getLinkFromFolderId,
+};
+
+export default gDriveService;
