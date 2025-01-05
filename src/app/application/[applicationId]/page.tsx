@@ -25,13 +25,9 @@ export default async function ApplicationPage({
   const events: ApplicationEvent[] = z.array(ApplicationEventSchema).parse([
     {
       date: new Date(),
-      title: "applied",
-      content: "Applied for the job",
-    },
-    {
-      date: new Date(),
-      title: "interview",
-      content: "Interview scheduled",
+      title: "Note",
+      type: "addNote",
+      content: "TODO: Read from sheet",
     },
   ]);
 

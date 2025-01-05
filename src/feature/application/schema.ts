@@ -39,7 +39,7 @@ const StateUpdateEventSchema = z.object({
 const NoteEventSchema = z.object({
   date: z.date(),
   type: z.literal("addNote"),
-  title: z.literal("Note"),
+  title: z.string(),
   content: z.string(),
 });
 
