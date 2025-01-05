@@ -6,7 +6,7 @@ import { type Metadata } from "next";
 import FileExplorer from "@/feature/file-explorer/FileExplorer";
 import { TRPCReactProvider } from "@/trpc/react";
 import { api, HydrateClient } from "@/trpc/server";
-import { FileInput } from "lucide-react";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Applify",
@@ -25,10 +25,12 @@ export default async function RootLayout({
         <TRPCReactProvider>
           <HydrateClient>
             <header className="flex justify-between border-b-2 px-8 py-4">
-              <div className="flex gap-4">
-                <FileInput />
-                <h1 className="text-2xl font-semibold">Applify Moep</h1>
-              </div>
+              <Link href="/">
+                <div className="flex items-center gap-4">
+                  <span className="text-2xl">🚀</span>
+                  <h1 className="text-2xl font-semibold">Applify Moep</h1>
+                </div>
+              </Link>
               <FileExplorer defaultTemplateId={template?.documentId ?? null} />
             </header>
             {children}
