@@ -17,19 +17,6 @@ const cachedApplications = (userId: string) =>
     },
   );
 
-const cachedGetApplicationById = (applicationId: string, userId: string) =>
-  unstable_cache(
-    () => applicationService.getApplicationById({ applicationId }),
-    [cacheTags.applications.details(applicationId)],
-    {
-      tags: [
-        cacheTags.applications.details(userId),
-        cacheTags.applications.metadata(applicationId),
-      ],
-      revalidate: 60 * 60,
-    },
-  );
-
 export const applicationsRouter = createTRPCRouter({
   createApplication: protectedProcedure
     .input(CreateApplicationSchema)

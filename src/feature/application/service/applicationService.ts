@@ -5,6 +5,7 @@ import { auth } from "@/server/auth";
 import { unstable_cache } from "next/cache";
 import {
   ApplicationSchema,
+  ApplicationStateSchema,
   type Application,
   type CreateApplication,
 } from "../schema";
@@ -118,7 +119,7 @@ async function createOverviewTable(
   data: { jobDescriptionUrl: string; jobTitle: string },
 ) {
   const OVERVIEW_SHEET_NAME = "overview";
-  const columns = ["link", "title"];
+  const columns = ["link", "title", "state"];
 
   const table = await spreadsheetService.createTable({
     spreadSheetId,
@@ -134,6 +135,7 @@ async function createOverviewTable(
     {
       link: data.jobDescriptionUrl,
       title: data.jobTitle,
+      state: ApplicationStateSchema.enum.created,
     },
   ]);
 }

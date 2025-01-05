@@ -71,6 +71,10 @@ async function getDocumentById(documentId: string) {
   }
 }
 
+function getLinkFromFolderId(folderId: string) {
+  return `https://drive.google.com/drive/folders/${folderId}`;
+}
+
 const gDriveService = {
   getFolderInformation,
   getDocumentById,
@@ -79,6 +83,7 @@ const gDriveService = {
   createNewFolder,
   getAllFoldersInFolder,
   getFileInFolderByName,
+  getLinkFromFolderId,
 };
 
 export default gDriveService;

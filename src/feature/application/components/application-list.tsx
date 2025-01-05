@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import gDriveService from "@/lib/google/drive";
 import { api } from "@/trpc/server";
 import {
   Archive,
@@ -65,7 +66,7 @@ function ApplicationItem(application: Readonly<Application>) {
         ) : null}
         <Button variant="ghost" asChild title="Document's Folder">
           <a
-            href={`https://drive.google.com/drive/u/1/folders/${application.folderId}`}
+            href={gDriveService.getLinkFromFolderId(application.folderId)}
             target="_blank"
           >
             <SquareArrowOutUpRight />
