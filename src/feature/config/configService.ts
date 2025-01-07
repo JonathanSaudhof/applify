@@ -2,6 +2,34 @@
 
 import gDriveService from "@/lib/google/drive";
 
+const CONFIG_FILE_NAME = "config.json";
+const APP_FOLDER_NAME = "applify";
+const CV_TEMPLATE_FILE_NAME = "CV Template";
+const COVER_LETTER_TEMPLATE_FILE_NAME = "Cover Letter Template";
+
+export class Config {
+  id?: string | null;
+  folderId?: string | null;
+  cvTemplateDocId?: string | null;
+  coverLetterTemplateDocId?: string | null;
+  version?: string;
+
+  init(config?: {
+    id?: string | null;
+    folderId?: string | null;
+    cvTemplateDocId?: string | null;
+    coverLetterTemplateDocId?: string | null;
+    version?: string;
+  }) {
+    this.id = config?.id;
+    this.folderId = config?.folderId;
+    this.cvTemplateDocId = config?.cvTemplateDocId;
+    this.coverLetterTemplateDocId = config?.coverLetterTemplateDocId;
+    this.version = config?.version;
+    return this;
+  }
+}
+
 export async function getAllFilesInFolder(folderId?: string) {
   const drive = await gDriveService.getAuthenticatedDrive();
 
@@ -18,35 +46,85 @@ export async function getAllFilesInFolder(folderId?: string) {
   }
 }
 
-export type Config = {
-  id: string;
-  folderId: string | null;
-  defaultTemplateDocId: string | null;
-};
+async function createBaseFolder() {
+  const folderId = await gDriveService.createNewFolder("applify");
+  return folderId;
+}
 
-const CONFIG_FILE_NAME = "config.json";
+async function createTemplateFolder(parentFolderId: string) {
+  const folderId = await gDriveService.createNewFolder(
+    APP_FOLDER_NAME,
+    parentFolderId,
+  );
+  return folderId;
+}
+
+async function createTemplateDocs(
+  templateName: string,
+  templateFolderId: string,
+) {
+  const docId = await gDriveService.createNewAsset({
+    title: templateName,
+    type: "application/vnd.google-apps.document",
+    parentFolderId: templateFolderId,
+  });
+  return docId;
+}
+
+async function initialConfiguration(): Promise<Config> {
+  const baseFolderId = await createBaseFolder();
+  const templateFolderId = await createTemplateFolder(baseFolderId);
+
+  const cvTemplateDocId = await createTemplateDocs(
+    CV_TEMPLATE_FILE_NAME,
+    templateFolderId,
+  );
+  const coverLetterTemplateDocId = await createTemplateDocs(
+    COVER_LETTER_TEMPLATE_FILE_NAME,
+    templateFolderId,
+  );
+
+  const config = new Config().init({
+    folderId: baseFolderId,
+    cvTemplateDocId,
+    coverLetterTemplateDocId,
+    version: "1.0.0",
+  });
+
+  return config;
+}
 
 export async function getOrCreateConfigFile() {
   const configFile = await getConfigFile();
 
   if (!configFile) {
-    return await createConfigFile();
+    const config = await initialConfiguration();
+    return await createConfigFile(config);
   }
 
-  return configFile;
+  return applyPendingMigrations(configFile);
+}
+
+async function applyPendingMigrations(configFile: Config): Promise<Config> {
+  if (configFile.version === "1.0.0") {
+    return configFile;
+  }
+
+  const newConfig = await initialConfiguration();
+  const updatedConfig = newConfig.id === configFile.id ? newConfig : configFile;
+
+  return await updateConfigFile(updatedConfig);
 }
 
 export async function getConfigFile() {
-  const drive = await gDriveService.getAuthenticatedDrive();
-
   try {
-    const fileList = await drive.files.list({
-      q: `name = '${CONFIG_FILE_NAME}'`,
-      fields: "nextPageToken, files(id, name)",
-      spaces: "appDataFolder",
-    });
-    // return actual content of the file
-    const configFile = fileList.data.files ? fileList.data.files[0] : null;
+    const fileList = await gDriveService.getFilesByName(
+      CONFIG_FILE_NAME,
+      "appDataFolder",
+    );
+
+    const configFile = fileList ? fileList[0] : null;
+
     if (!configFile?.id) {
       return null;
     }
@@ -58,8 +136,10 @@ export async function getConfigFile() {
   }
 }
 
-export async function createConfigFile(): Promise<Config> {
+export async function createConfigFile(config?: Config): Promise<Config> {
   const drive = await gDriveService.getAuthenticatedDrive();
+
+  const conf = config ?? new Config().init();
 
   const res = await drive.files.create({
     requestBody: {
@@ -69,14 +149,13 @@ export async function createConfigFile(): Promise<Config> {
     },
     media: {
       mimeType: "application/json",
-      body: JSON.stringify({
-        folderId: null,
-        defaultTemplateDocId: "",
-      }),
+      body: JSON.stringify(conf),
     },
   });
 
-  return { id: res.data.id!, folderId: null, defaultTemplateDocId: null };
+  conf.id = res.data.id!;
+
+  return conf;
 }
 
 export async function getFileById(fileId: string | null) {
@@ -98,19 +177,19 @@ export async function getFileById(fileId: string | null) {
   }
 }
 
-export async function updateConfigFile(config: Config) {
+export async function updateConfigFile(config: Config): Promise<Config> {
   const drive = await gDriveService.getAuthenticatedDrive();
 
   const configFile = await getConfigFile();
 
   if (!configFile) {
     console.error("Config file not found");
-    return null;
+    throw new Error("Config file not found");
   }
 
   if (!configFile.id) {
     console.error("Config file id not found");
-    return null;
+    throw new Error("Config file id not found");
   }
 
   try {
@@ -121,8 +200,9 @@ export async function updateConfigFile(config: Config) {
         body: JSON.stringify(config),
       },
     });
+    return config;
   } catch (error) {
     console.error(error);
-    return null;
+    throw error;
   }
 }

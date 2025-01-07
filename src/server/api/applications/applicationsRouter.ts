@@ -30,14 +30,17 @@ export const applicationsRouter = createTRPCRouter({
         throw new Error("Config file is missing folderId");
       }
 
-      if (!config.defaultTemplateDocId) {
-        throw new Error("Config file is missing defaultTemplateDocId");
+      if (!config.cvTemplateDocId) {
+        throw new Error("Config file is missing cvTemplateDocId");
       }
 
       await applicationService.createNewApplication({
         data: input,
         baseFolderId: config?.folderId,
-        templateDocId: config?.defaultTemplateDocId,
+        cvTemplateDocId: config?.cvTemplateDocId,
+        coverLetterTemplateDocId: input.withCoverLetter
+          ? config?.coverLetterTemplateDocId
+          : null,
       });
     }),
   getAllApplications: protectedProcedure

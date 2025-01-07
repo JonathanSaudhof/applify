@@ -13,6 +13,7 @@ export const CreateApplicationSchema = z.object({
   jobTitle: z.string(),
   applicationState: ApplicationStateSchema,
   jobDescriptionUrl: z.string().url(),
+  withCoverLetter: z.boolean().default(false),
 });
 
 export type CreateApplication = z.infer<typeof CreateApplicationSchema>;

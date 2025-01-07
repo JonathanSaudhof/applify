@@ -23,11 +23,13 @@ const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
 
 export async function createNewApplication({
   data,
-  templateDocId,
+  cvTemplateDocId,
+  coverLetterTemplateDocId,
   baseFolderId,
 }: {
   data: CreateApplication;
-  templateDocId: string;
+  cvTemplateDocId: string;
+  coverLetterTemplateDocId?: string | null;
   baseFolderId: string | null;
 }): Promise<Application | null> {
   try {
@@ -42,13 +44,21 @@ export async function createNewApplication({
     }
 
     const templateId = await copyTemplateDocument({
-      templateDocId,
+      templateDocId: cvTemplateDocId,
       folderId,
       documentName: `CV_${session.user?.name?.replace(" ", "_")}_${new Date().toISOString()}`,
     });
 
     if (!templateId) {
       throw new Error("Failed to copy template document");
+    }
+
+    if (coverLetterTemplateDocId) {
+      await copyTemplateDocument({
+        templateDocId: coverLetterTemplateDocId,
+        folderId,
+        documentName: `CoverLetter_${session.user?.name?.replace(" ", "_")}_${new Date().toISOString()}`,
+      });
     }
 
     await createMetadataSheet({

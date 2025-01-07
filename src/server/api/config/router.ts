@@ -1,4 +1,5 @@
 import {
+  Config,
   getConfigFile,
   getOrCreateConfigFile,
   updateConfigFile,
@@ -45,12 +46,13 @@ export const configRouter = createTRPCRouter({
         return null;
       }
 
-      await updateConfigFile({
+      const updatedConfig = new Config().init({
         ...config,
-        folderId: folderId ?? config.folderId,
-        defaultTemplateDocId:
-          defaultTemplateDocId ?? config.defaultTemplateDocId,
+        folderId: folderId ?? config.folderId!,
+        cvTemplateDocId: defaultTemplateDocId ?? config.cvTemplateDocId!,
       });
+
+      await updateConfigFile(updatedConfig);
 
       return await getConfigFile();
     }),
@@ -58,13 +60,13 @@ export const configRouter = createTRPCRouter({
     const { session } = ctx;
     const config = await cachedGetOrCreateConfigFile(session.user.id!)();
 
-    if (!config.defaultTemplateDocId) {
+    if (!config?.cvTemplateDocId) {
       console.error("Default template doc id not found");
       return null;
     }
 
     const document = await cachedGetTemplateFile(session.user.id!)(
-      config.defaultTemplateDocId,
+      config.cvTemplateDocId,
     );
 
     return document;

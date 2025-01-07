@@ -1,4 +1,4 @@
-import { google } from "googleapis";
+import { type drive_v3, google } from "googleapis";
 import { getOAuth } from "./auth";
 
 async function getAuthenticatedDocument() {
@@ -11,19 +11,41 @@ async function getAuthenticatedDrive() {
 
 async function createNewFolder(
   folderName: string,
-  parentFolderId: string | null,
-) {
+  parentFolderId?: string | null,
+): Promise<string> {
+  const folderId = createNewAsset({
+    title: folderName,
+    type: "application/vnd.google-apps.folder",
+    parentFolderId,
+  });
+
+  return folderId;
+}
+
+async function createNewAsset({
+  type,
+  title,
+  parentFolderId,
+}: {
+  title: string;
+  parentFolderId?: string | null;
+  type: drive_v3.Schema$File["mimeType"];
+}) {
   const drive = await getAuthenticatedDrive();
 
-  const folder = await drive.files.create({
+  const asset = await drive.files.create({
     requestBody: {
-      name: folderName,
+      name: title,
       parents: parentFolderId ? [parentFolderId] : [],
-      mimeType: "application/vnd.google-apps.folder",
+      mimeType: type,
     },
   });
 
-  return folder.data.id;
+  if (!asset.data.id) {
+    throw new Error(`Failed to create asset-${type}: ${title}`);
+  }
+
+  return asset.data.id;
 }
 
 async function getAllFoldersInFolder(folderId: string, filterTrashed = false) {
@@ -71,6 +93,21 @@ async function getDocumentById(documentId: string) {
   }
 }
 
+async function getFilesByName(
+  name: string,
+  spaces?: drive_v3.Params$Resource$Files$List["spaces"],
+) {
+  const drive = await getAuthenticatedDrive();
+
+  const fileList = await drive.files.list({
+    q: `name = '${name}'`,
+    fields: "nextPageToken, files(id, name)",
+    spaces: spaces,
+  });
+
+  return fileList.data.files;
+}
+
 function getLinkFromFolderId(folderId: string) {
   return `https://drive.google.com/drive/folders/${folderId}`;
 }
@@ -84,6 +121,8 @@ const gDriveService = {
   getAllFoldersInFolder,
   getFileInFolderByName,
   getLinkFromFolderId,
+  createNewAsset,
+  getFilesByName,
 };
 
 export default gDriveService;
