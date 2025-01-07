@@ -1,4 +1,4 @@
-import { getAllFilesInFolder } from "@/feature/file-explorer/services";
+import { getAllFilesInFolder } from "@/feature/config/configService";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { z } from "zod";
 

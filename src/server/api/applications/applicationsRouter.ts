@@ -3,7 +3,7 @@ import {
   CreateApplicationSchema,
 } from "@/feature/application/schema";
 import applicationService from "@/feature/application/service";
-import { getOrCreateConfigFile } from "@/feature/file-explorer/services";
+import { getOrCreateConfigFile } from "@/feature/config/configService";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import cacheTags from "../cache-tags";

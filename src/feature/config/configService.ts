@@ -18,24 +18,6 @@ export async function getAllFilesInFolder(folderId?: string) {
   }
 }
 
-export async function downloadFile(fileId: string) {
-  const drive = await gDriveService.getAuthenticatedDrive();
-
-  try {
-    const res = await drive.files.get(
-      {
-        fileId,
-        alt: "media",
-      },
-      { responseType: "stream" },
-    );
-
-    return res.data;
-  } catch (error) {
-    throw error;
-  }
-}
-
 export type Config = {
   id: string;
   folderId: string | null;

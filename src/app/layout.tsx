@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
-import FileExplorer from "@/feature/file-explorer/FileExplorer";
+import FileExplorer from "@/feature/config/components/file-explorer";
 import { TRPCReactProvider } from "@/trpc/react";
 import { api, HydrateClient } from "@/trpc/server";
 import Link from "next/link";

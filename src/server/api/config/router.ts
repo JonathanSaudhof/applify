@@ -2,7 +2,7 @@ import {
   getConfigFile,
   getOrCreateConfigFile,
   updateConfigFile,
-} from "@/feature/file-explorer/services";
+} from "@/feature/config/configService";
 import gDriveService from "@/lib/google/drive";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
