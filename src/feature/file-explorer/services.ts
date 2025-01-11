@@ -2,17 +2,9 @@
 
 import gDriveService from "@/lib/google/drive";
 
-export async function getAllFilesInFolder(folderId?: string) {
-  const drive = await gDriveService.getAuthenticatedDrive();
-
+export async function getAllFilesInFolder(folderId: string) {
   try {
-    const res = await drive.files.list({
-      q: `'${folderId ? folderId : "root"}' in parents`,
-      fields: "nextPageToken,files(id, name, mimeType)",
-      orderBy: "folder",
-    });
-
-    return res.data.files;
+    return await gDriveService.getAllFoldersInFolder(folderId, true);
   } catch (error) {
     throw error;
   }

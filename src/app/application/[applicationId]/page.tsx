@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import PageContainer from "@/components/ui/page-container";
 import ApplicationTimeline from "@/feature/application/components/application-timeline";
 import ApplicationUpdateState from "@/feature/application/components/application-update-state";
 import {
@@ -32,7 +33,7 @@ export default async function ApplicationPage({
   ]);
 
   return (
-    <section className="flex flex-col gap-8 p-8">
+    <PageContainer>
       <div className="flex items-center gap-8">
         <div className="flex flex-1 flex-col gap-2">
           <h1 className="text-2xl font-bold" title="Job title">
@@ -71,6 +72,6 @@ export default async function ApplicationPage({
         <ApplicationUpdateState application={application} />
       </div>
       <ApplicationTimeline events={events} />
-    </section>
+    </PageContainer>
   );
 }

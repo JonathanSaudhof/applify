@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
-import FileExplorer from "@/feature/file-explorer/FileExplorer";
+import { Menu } from "@/feature/configuration/components/menu";
 import { TRPCReactProvider } from "@/trpc/react";
 import { api, HydrateClient } from "@/trpc/server";
 import Link from "next/link";
@@ -31,7 +31,7 @@ export default async function RootLayout({
                   <h1 className="text-2xl font-semibold">Applify</h1>
                 </div>
               </Link>
-              <FileExplorer defaultTemplateId={template?.documentId ?? null} />
+              <Menu />
             </header>
             {children}
           </HydrateClient>
