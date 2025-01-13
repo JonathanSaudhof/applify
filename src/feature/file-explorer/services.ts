@@ -31,7 +31,8 @@ export async function downloadFile(fileId: string) {
 export type Config = {
   id: string;
   folderId: string | null;
-  defaultTemplateDocId: string | null;
+  defaultCvTemplateDocId: string | null;
+  defaultCoverLetterTemplateDocId: string | null;
 };
 
 const CONFIG_FILE_NAME = "config.json";
@@ -86,7 +87,12 @@ export async function createConfigFile(): Promise<Config> {
     },
   });
 
-  return { id: res.data.id!, folderId: null, defaultTemplateDocId: null };
+  return {
+    id: res.data.id!,
+    folderId: null,
+    defaultCvTemplateDocId: null,
+    defaultCoverLetterTemplateDocId: null,
+  };
 }
 
 export async function getFileById(fileId: string | null) {
