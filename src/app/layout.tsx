@@ -28,7 +28,7 @@ export default async function RootLayout({
               <Link href="/">
                 <div className="flex items-center gap-4">
                   <span className="text-2xl">🚀</span>
-                  <h1 className="text-2xl font-semibold">Applify Moep</h1>
+                  <h1 className="text-2xl font-semibold">Applify</h1>
                 </div>
               </Link>
               <FileExplorer defaultTemplateId={template?.documentId ?? null} />
