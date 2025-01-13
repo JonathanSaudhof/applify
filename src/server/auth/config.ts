@@ -130,7 +130,6 @@ export const authConfig = {
           return token;
         } catch (error) {
           console.error("Error refreshing access_token", error);
-          // If we fail to refresh the token, return an error so we can handle it on the page
           token.error = "RefreshTokenError";
           return token;
         }
