@@ -1,34 +1,13 @@
 "use server";
 
 import gDriveService from "@/lib/google/drive";
+import Config from "./models/Config";
 
 const CONFIG_FILE_NAME = "config.json";
 const APP_FOLDER_NAME = "applify";
+const APP__TEMPLATE_FOLDER_NAME = "templates";
 const CV_TEMPLATE_FILE_NAME = "CV Template";
 const COVER_LETTER_TEMPLATE_FILE_NAME = "Cover Letter Template";
-
-export class Config {
-  id?: string | null;
-  folderId?: string | null;
-  cvTemplateDocId?: string | null;
-  coverLetterTemplateDocId?: string | null;
-  version?: string;
-
-  init(config?: {
-    id?: string | null;
-    folderId?: string | null;
-    cvTemplateDocId?: string | null;
-    coverLetterTemplateDocId?: string | null;
-    version?: string;
-  }) {
-    this.id = config?.id;
-    this.folderId = config?.folderId;
-    this.cvTemplateDocId = config?.cvTemplateDocId;
-    this.coverLetterTemplateDocId = config?.coverLetterTemplateDocId;
-    this.version = config?.version;
-    return this;
-  }
-}
 
 export async function getAllFilesInFolder(folderId?: string) {
   const drive = await gDriveService.getAuthenticatedDrive();
@@ -47,13 +26,13 @@ export async function getAllFilesInFolder(folderId?: string) {
 }
 
 async function createBaseFolder() {
-  const folderId = await gDriveService.createNewFolder("applify");
+  const folderId = await gDriveService.createNewFolder(APP_FOLDER_NAME);
   return folderId;
 }
 
 async function createTemplateFolder(parentFolderId: string) {
   const folderId = await gDriveService.createNewFolder(
-    APP_FOLDER_NAME,
+    APP__TEMPLATE_FOLDER_NAME,
     parentFolderId,
   );
   return folderId;

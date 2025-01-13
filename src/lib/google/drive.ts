@@ -13,6 +13,18 @@ async function createNewFolder(
   folderName: string,
   parentFolderId?: string | null,
 ): Promise<string> {
+  const folders = await getAllFoldersInFolder(parentFolderId ?? "root");
+  if (!folders) {
+    throw new Error(`Failed to get folders in folder: ${parentFolderId}`);
+  }
+  const folderAlreadyExists = folders.find(
+    (folder) => folder.name === folderName,
+  );
+  if (folderAlreadyExists) {
+    console.log(`Folder already exists: ${folderName}`);
+    return folderAlreadyExists.id!;
+  }
+
   const folderId = createNewAsset({
     title: folderName,
     type: "application/vnd.google-apps.folder",

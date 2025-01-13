@@ -1,5 +1,4 @@
 import {
-  Config,
   getConfigFile,
   getOrCreateConfigFile,
   updateConfigFile,
@@ -8,6 +7,7 @@ import gDriveService from "@/lib/google/drive";
 import { unstable_cache } from "next/cache";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import Config from "@/feature/config/models/Config";
 
 export const cachedGetOrCreateConfigFile = (userId: string) =>
   unstable_cache(() => getOrCreateConfigFile(), [`config-${userId}`], {
