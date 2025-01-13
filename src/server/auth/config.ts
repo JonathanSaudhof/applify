@@ -4,6 +4,7 @@ import { type NextAuthConfig } from "next-auth";
 
 import { env } from "@/env";
 import Google from "next-auth/providers/google";
+import { revalidatePath } from "next/cache";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -78,6 +79,10 @@ export const authConfig = {
      */
   ],
   callbacks: {
+    async signIn() {
+      revalidatePath("/");
+      return true;
+    },
     async jwt({ token, account }) {
       if (account) {
         // First-time login, save the `access_token`, its expiry and the `refresh_token`
