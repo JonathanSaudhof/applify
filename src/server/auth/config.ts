@@ -33,7 +33,6 @@ declare module "next-auth" {
 
 const scopes = [
   "/auth/documents",
-  "/auth/drive",
   "/auth/drive.file",
   "/auth/drive.appdata",
   "/auth/drive.appfolder",
