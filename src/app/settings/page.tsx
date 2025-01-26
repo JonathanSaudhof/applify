@@ -1,15 +1,10 @@
 import { env } from "@/env";
 
 import { SettingsPage } from "@/feature/settings/components/settings-page";
-import type { Config } from "@/feature/settings/model/config";
+import { api } from "@/trpc/server";
 
 export default async function Settings() {
-  // const config = await api.config.getConfigFile();
-  const config: Config = {
-    folderId: "1",
-    id: "",
-    templates: [],
-  };
+  const config = await api.config.getConfigFile();
 
   const appId = env.GOOGLE_PROJECT_ID;
 

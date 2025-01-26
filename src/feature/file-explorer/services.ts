@@ -1,6 +1,11 @@
 "use server";
 
 import gDriveService from "@/lib/google/drive";
+import {
+  ConfigFileSchema,
+  ConfigSchema,
+  type Config,
+} from "../settings/model/config";
 
 export async function getAllFilesInFolder(folderId: string) {
   try {
@@ -28,16 +33,9 @@ export async function downloadFile(fileId: string) {
   }
 }
 
-export type Config = {
-  id: string;
-  folderId: string | null;
-  defaultCvTemplateDocId: string | null;
-  defaultCoverLetterTemplateDocId: string | null;
-};
-
 const CONFIG_FILE_NAME = "config.json";
 
-export async function getOrCreateConfigFile() {
+export async function getOrCreateConfigFile(): Promise<Config> {
   const configFile = await getConfigFile();
 
   if (!configFile) {
@@ -47,7 +45,7 @@ export async function getOrCreateConfigFile() {
   return configFile;
 }
 
-export async function getConfigFile() {
+export async function getConfigFile(): Promise<Config | null> {
   const drive = await gDriveService.getAuthenticatedDrive();
 
   try {
@@ -61,8 +59,8 @@ export async function getConfigFile() {
     if (!configFile?.id) {
       return null;
     }
-    const config = await getFileById(configFile?.id);
-    return { id: configFile.id, ...config } as Config;
+    const config = ConfigFileSchema.parse(await getFileById(configFile?.id));
+    return { ...config, id: configFile.id };
   } catch (error) {
     console.error(error);
     return null;
@@ -80,19 +78,18 @@ export async function createConfigFile(): Promise<Config> {
     },
     media: {
       mimeType: "application/json",
-      body: JSON.stringify({
-        folderId: null,
-        defaultTemplateDocId: "",
-      }),
+      body: JSON.stringify({}),
     },
   });
 
-  return {
+  const config = ConfigSchema.parse({
     id: res.data.id!,
-    folderId: null,
-    defaultCvTemplateDocId: null,
-    defaultCoverLetterTemplateDocId: null,
-  };
+    baseFolder: null,
+    templateFolder: null,
+    templates: [],
+  });
+
+  return config;
 }
 
 export async function getFileById(fileId: string | null) {
@@ -107,7 +104,7 @@ export async function getFileById(fileId: string | null) {
       alt: "media",
     });
 
-    return fileContent.data;
+    return { ...fileContent.data };
   } catch (error) {
     console.error(error);
     return null;
