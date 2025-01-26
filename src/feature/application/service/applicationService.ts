@@ -141,13 +141,16 @@ async function createOverviewTable(
 export async function getAllApplications({
   folderId,
   userId,
+  filterFolderId,
 }: {
   folderId: string;
   userId: string;
+  filterFolderId?: string;
 }): Promise<Application[]> {
   const rawApplications = await gDriveService.getAllFoldersInFolder(
     folderId,
-    false,
+    true,
+    filterFolderId,
   );
 
   if (!rawApplications) {
@@ -206,7 +209,7 @@ export async function getMetaDataInFolder(folderId: string): Promise<Metadata> {
   const file = await gDriveService.getFileInFolderByName(folderId, "metadata");
 
   if (!file?.id) {
-    console.error("Metadata file not found in folder: ", folderId);
+    // console.error("Metadata file not found in folder: ", folderId);
     return {
       jobDescriptionUrl: null,
       jobTitle: null,

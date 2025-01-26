@@ -9,7 +9,6 @@ import { RefreshCw } from "lucide-react";
 import { Suspense } from "react";
 
 export default async function Home() {
-  const template = await api.config.getTemplateFile();
   const config = await api.config.getConfigFile();
 
   const handleRefresh = async () => {
@@ -21,19 +20,6 @@ export default async function Home() {
     <HydrateClient>
       <main className="">
         <section className="flex justify-between border-b-2 p-8">
-          {template ? (
-            <Button variant="outline" asChild>
-              <a
-                href={`https://docs.google.com/document/d/${template?.documentId}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {template.title}
-              </a>
-            </Button>
-          ) : (
-            "No template selected"
-          )}
           <div className="flex gap-4">
             <Button variant="outline" onClick={handleRefresh}>
               <RefreshCw />
@@ -41,10 +27,9 @@ export default async function Home() {
             <CreateApplication />
           </div>
         </section>
-
-        {config?.folderId ? (
+        {config?.baseFolder ? (
           <Suspense fallback={<ApplicationListSkeleton />} key={Math.random()}>
-            <ApplicationsList folderId={config.folderId} />
+            <ApplicationsList folderId={config.baseFolder.id} />
           </Suspense>
         ) : (
           <div>No folderId found</div>

@@ -26,7 +26,11 @@ async function createNewFolder(
   return folder.data.id;
 }
 
-async function getAllFoldersInFolder(folderId: string, filterTrashed = false) {
+async function getAllFoldersInFolder(
+  folderId: string,
+  filterTrashed = false,
+  filterFolderId?: string,
+) {
   const drive = await getAuthenticatedDrive();
 
   const folders = await drive.files.list({
@@ -34,6 +38,13 @@ async function getAllFoldersInFolder(folderId: string, filterTrashed = false) {
     fields: "files(id, name, mimeType)",
   });
 
+  if (!folders.data.files) {
+    return [];
+  }
+
+  if (filterFolderId) {
+    return folders.data.files.filter((folder) => folder.id !== filterFolderId);
+  }
   return folders.data.files;
 }
 async function getFileInFolderByName(folderId: string, fileName: string) {

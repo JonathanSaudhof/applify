@@ -12,9 +12,11 @@ interface ApplicationService {
   getAllApplications: ({
     folderId,
     userId,
+    filterFolderId,
   }: {
     folderId: string;
     userId: string;
+    filterFolderId?: string;
   }) => Promise<Application[]>;
   getApplicationById: ({
     applicationId,

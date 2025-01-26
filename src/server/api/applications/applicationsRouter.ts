@@ -11,8 +11,12 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const cachedApplications = (userId: string) =>
   unstable_cache(
-    (folderId: string) =>
-      applicationService.getAllApplications({ folderId, userId }),
+    (folderId: string, filterFolderId?: string) =>
+      applicationService.getAllApplications({
+        folderId,
+        userId,
+        filterFolderId,
+      }),
     [cacheTags.applications.list(userId)],
     {
       tags: [cacheTags.applications.list(userId)],
@@ -30,15 +34,11 @@ export const applicationsRouter = createTRPCRouter({
         throw new Error("Config file is missing folderId");
       }
 
-      if (!config.defaultCvTemplateDocId: string | null) {
-        throw new Error("Config file is missing defaultTemplateDocId");
-      }
-
-      await applicationService.createNewApplication({
-        data: input,
-        baseFolderId: config?.folderId,
-        templateDocId: config?.defaultCvTemplateDocId: string | null,
-      });
+      // await applicationService.createNewApplication({
+      //   data: input,
+      //   baseFolderId: config?.folderId,
+      //   templateDocId: config?.defaultCvTemplateDocId: string | null,
+      // });
     }),
   getAllApplications: protectedProcedure
     .input(
@@ -47,8 +47,10 @@ export const applicationsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
+      const config = await getOrCreateConfigFile();
       const applications = await cachedApplications(ctx.session.user.id!)(
         input.folderId,
+        config.templateFolder?.id,
       );
       return applications;
     }),
