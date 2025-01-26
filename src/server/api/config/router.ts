@@ -1,9 +1,9 @@
+import { ConfigSchema } from "@/feature/settings/model/config";
 import {
   getConfigFile,
   getOrCreateConfigFile,
   updateConfigFile,
-} from "@/feature/file-explorer/services";
-import { ConfigSchema } from "@/feature/settings/model/config";
+} from "@/feature/settings/services";
 import gDriveService from "@/lib/google/drive";
 import { unstable_cache } from "next/cache";
 import { createTRPCRouter, protectedProcedure } from "../trpc";

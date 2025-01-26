@@ -1,11 +1,7 @@
 "use server";
 
 import gDriveService from "@/lib/google/drive";
-import {
-  ConfigFileSchema,
-  ConfigSchema,
-  type Config,
-} from "../settings/model/config";
+import { ConfigFileSchema, ConfigSchema, type Config } from "./model/config";
 
 export async function getAllFilesInFolder(folderId: string) {
   try {
