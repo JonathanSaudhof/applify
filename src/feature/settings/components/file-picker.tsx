@@ -11,7 +11,7 @@ type GoogleMimeType =
   | "application/vnd.google-apps.folder"
   | "application/vnd.google-apps.document";
 
-type PickedEvent = CustomEvent<{
+export interface PickedEvent extends CustomEvent {
   type: "picker:picked";
   detail: {
     action: "picked";
@@ -41,24 +41,24 @@ type PickedEvent = CustomEvent<{
       parentId: string;
     }>;
   };
-}>;
+}
 
-type ErrorEvent = CustomEvent<{
+interface ErrorEvent extends CustomEvent {
   type: "picker:error";
   detail: {
     action: "picked";
     error: string;
   };
-}>;
+}
 
-type CancelledEvent = CustomEvent<{
+interface CancelledEvent extends CustomEvent {
   type: "picker:canceled";
   detail: {
     action: "cancel";
   };
-}>;
+}
 
-type PickerEvent = PickedEvent | ErrorEvent | CancelledEvent;
+export type PickerEvent = PickedEvent | ErrorEvent | CancelledEvent;
 
 declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -110,6 +110,7 @@ export function FilePicker({
   trigger,
   onPicked,
   mimeType,
+  disabled,
 }: {
   appId: string;
   oauthToken: string;
@@ -117,12 +118,16 @@ export function FilePicker({
   parent?: string;
   onPicked?: (e: PickedEvent) => void;
   mimeType: GoogleMimeType;
+  disabled?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div>
-      {React.cloneElement(trigger, { onClick: () => setIsOpen(true) })}
+      {React.cloneElement(trigger, {
+        onClick: () => setIsOpen(true),
+        disabled,
+      })}
       {isOpen ? (
         <FilePickerContainer
           app-id={appId}
@@ -179,13 +184,22 @@ function FilePickerContainer(
         onCanceled();
       }
     };
+    ref.current.addEventListener("picker:picked", handler as EventListener);
 
-    ref.current.addEventListener("picker:picked", handler);
-    ref.current.addEventListener("picker:canceled", closeHandler);
+    ref.current.addEventListener(
+      "picker:canceled",
+      closeHandler as EventListener,
+    );
 
     return () => {
-      ref.current?.removeEventListener("picker:picked", handler);
-      ref.current?.removeEventListener("picker:canceled", closeHandler);
+      ref.current?.removeEventListener(
+        "picker:picked",
+        handler as EventListener,
+      );
+      ref.current?.removeEventListener(
+        "picker:canceled",
+        closeHandler as EventListener,
+      );
     };
   }, [onCanceled, onPicked]);
   return (
