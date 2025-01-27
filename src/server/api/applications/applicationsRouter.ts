@@ -30,15 +30,18 @@ export const applicationsRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const config = await getOrCreateConfigFile();
 
-      if (!config.folderId) {
+      if (!config.baseFolder) {
         throw new Error("Config file is missing folderId");
       }
 
-      // await applicationService.createNewApplication({
-      //   data: input,
-      //   baseFolderId: config?.folderId,
-      //   templateDocId: config?.defaultCvTemplateDocId: string | null,
-      // });
+      await applicationService.createNewApplication({
+        data: input,
+        baseFolderId: config.baseFolder.id,
+        templates: config.templates.map((child) => ({
+          id: child.id,
+          prefix: child.type,
+        })),
+      });
     }),
   getAllApplications: protectedProcedure
     .input(

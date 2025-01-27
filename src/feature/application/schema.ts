@@ -17,6 +17,16 @@ export const CreateApplicationSchema = z.object({
 
 export type CreateApplication = z.infer<typeof CreateApplicationSchema>;
 
+export const CreateApplicationRequestSchema = z.object({
+  data: CreateApplicationSchema,
+  baseFolderId: z.string(),
+  templates: z.array(z.object({ id: z.string(), prefix: z.string() })),
+});
+
+export type CreateApplicationRequest = z.infer<
+  typeof CreateApplicationRequestSchema
+>;
+
 export const ApplicationSchema = z.object({
   folderId: z.string(),
   jobTitle: z.string().nullable(),

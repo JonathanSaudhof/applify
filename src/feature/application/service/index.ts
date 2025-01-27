@@ -1,4 +1,8 @@
-import type { Application, ApplicationState } from "../schema";
+import type {
+  Application,
+  ApplicationState,
+  CreateApplicationRequest,
+} from "../schema";
 import {
   createNewApplication,
   getAllApplications,
@@ -8,7 +12,9 @@ import {
 } from "./applicationService";
 
 interface ApplicationService {
-  createNewApplication: typeof createNewApplication;
+  createNewApplication: (
+    props: CreateApplicationRequest,
+  ) => Promise<Application | null>;
   getAllApplications: ({
     folderId,
     userId,

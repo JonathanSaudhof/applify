@@ -36,7 +36,6 @@ const scopes = [
   "/auth/drive.file",
   "/auth/drive.appdata",
   "/auth/drive.appfolder",
-  "/auth/drive.metadata.readonly",
   "/auth/userinfo.email",
   "/auth/userinfo.profile",
 ];

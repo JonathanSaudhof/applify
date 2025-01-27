@@ -8,7 +8,7 @@ import {
   ApplicationStateSchema,
   type Application,
   type ApplicationState,
-  type CreateApplication,
+  type CreateApplicationRequest,
 } from "../schema";
 
 const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
@@ -23,13 +23,9 @@ const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
 
 export async function createNewApplication({
   data,
-  templateDocId,
+  templates,
   baseFolderId,
-}: {
-  data: CreateApplication;
-  templateDocId: string;
-  baseFolderId: string | null;
-}): Promise<Application | null> {
+}: CreateApplicationRequest): Promise<Application | null> {
   try {
     const session = await auth();
     const folderId = await gDriveService.createNewFolder(
@@ -41,15 +37,15 @@ export async function createNewApplication({
       throw new Error("Failed to create folder");
     }
 
-    const templateId = await copyTemplateDocument({
-      templateDocId,
-      folderId,
-      documentName: `CV_${session.user?.name?.replace(" ", "_")}_${new Date().toISOString()}`,
-    });
+    const allTemplates = templates.map(({ id, prefix }) =>
+      copyTemplateDocument({
+        templateDocId: id,
+        folderId,
+        documentName: `${prefix.toUpperCase()}_${session.user?.name?.replace(" ", "_")}_${new Date().toLocaleDateString()}`,
+      }),
+    );
 
-    if (!templateId) {
-      throw new Error("Failed to copy template document");
-    }
+    await Promise.all(allTemplates);
 
     await createMetadataSheet({
       folderId,
