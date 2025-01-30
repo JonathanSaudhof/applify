@@ -7,6 +7,7 @@ import {
   type ApplicationEvent,
 } from "@/feature/application/schema";
 import gDriveService from "@/lib/google/drive";
+import { getLinkFromFolderId } from "@/lib/utils";
 import { api } from "@/trpc/server";
 import { Link, SquareArrowOutUpRight } from "lucide-react";
 import "react-vertical-timeline-component/style.min.css";
@@ -58,7 +59,7 @@ export default async function ApplicationPage({
           ) : null}
           <Button variant="outline" className="flex justify-start" asChild>
             <a
-              href={gDriveService.getLinkFromFolderId(application.folderId)}
+              href={getLinkFromFolderId(application.folderId)}
               title="Documents"
               target="_blank"
             >
