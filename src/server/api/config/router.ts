@@ -4,23 +4,14 @@ import {
   getOrCreateConfigFile,
   updateConfigFile,
 } from "@/feature/settings/services";
-import gDriveService from "@/lib/google/drive";
 import { unstable_cache } from "next/cache";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import cacheTags from "../cache-tags";
 
 export const cachedGetOrCreateConfigFile = (userId: string) =>
-  unstable_cache(() => getOrCreateConfigFile(), [`config-${userId}`], {
-    tags: [`config-${userId}`],
+  unstable_cache(() => getOrCreateConfigFile(), [cacheTags.config(userId)], {
+    tags: [cacheTags.config(userId)],
   });
-
-const cachedGetTemplateFile = (userId: string) =>
-  unstable_cache(
-    (documentId: string) => gDriveService.getDocumentById(documentId),
-    [`template-${userId}`],
-    {
-      tags: [`config-${userId}`, `template-${userId}`],
-    },
-  );
 
 export const configRouter = createTRPCRouter({
   getConfigFile: protectedProcedure.query(async ({ ctx }) => {
@@ -35,19 +26,4 @@ export const configRouter = createTRPCRouter({
       await updateConfigFile(input);
       return await getConfigFile();
     }),
-  getTemplateFile: protectedProcedure.query(async ({ ctx }) => {
-    const { session } = ctx;
-    const config = await cachedGetOrCreateConfigFile(session.user.id!)();
-
-    // if (!config.defaultCvTemplateDocId: string | null) {
-    //   console.error("Default template doc id not found");
-    //   return null;
-    // }
-
-    // const document = await cachedGetTemplateFile(session.user.id!)(
-    //   config.defaultCvTemplateDocId: string | null,
-    // );
-
-    return {};
-  }),
 });

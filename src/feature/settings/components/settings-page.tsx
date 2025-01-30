@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import { type PropsWithChildren } from "react";
 import type { Config, TemplateType } from "../model/config";
 import { FilePicker, type PickedEvent } from "./file-picker";
+import { invalidateConfig } from "../actions/invalidateConfig";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function SettingsPage({
   appId,
@@ -22,7 +24,8 @@ export function SettingsPage({
   const router = useRouter();
 
   const mutation = api.config.updateConfigFile.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      await invalidateConfig();
       router.refresh();
     },
     onError: (error) => {
@@ -99,14 +102,14 @@ export function SettingsPage({
       });
     };
 
-  if (!session.data) {
-    return <div>Is Loading</div>;
-  }
-
   const cvTemplate = config.templates.find((item) => item.type === "cv");
   const coverLetterTemplate = config.templates.find(
     (item) => item.type === "cover-letter",
   );
+
+  if (mutation.isPending || !session.data) {
+    return <SettingsSkeleton />;
+  }
 
   return (
     <PageContainer>
@@ -270,4 +273,25 @@ function SettingsDescription({ children }: PropsWithChildren) {
 
 function SettingsControls({ children }: PropsWithChildren) {
   return <div className="flex items-center gap-6">{children}</div>;
+}
+
+export function SettingsSkeleton() {
+  const skeletons = Array.from({ length: 5 }).map((_, index) => (
+    <SettingsSection key={index}>
+      <SettingsContent icon={<Skeleton className="h-5 w-5 rounded" />}>
+        <Skeleton className="mb-2 h-4 w-48 rounded-full" />
+        <Skeleton className="h-3 w-36 rounded-full" />
+      </SettingsContent>
+      <SettingsControls>
+        <Skeleton className="h-8 w-12 rounded" />
+        <Skeleton className="h-8 w-24 rounded" />
+      </SettingsControls>
+    </SettingsSection>
+  ));
+  return (
+    <PageContainer>
+      <h1 className="text-2xl">Settings</h1>
+      {skeletons}
+    </PageContainer>
+  );
 }
