@@ -46,15 +46,21 @@ async function readTable<T extends object>(
 ) {
   const auth = await getOAuth();
   const doc = new GoogleSpreadsheet(spreadSheetId, auth);
-  await doc.loadInfo(); // loads document properties and worksheets
 
-  const sheet = doc.sheetsByTitle[tableName];
-  if (!sheet) {
+  try {
+    await doc.loadInfo(); // loads document properties and worksheets
+
+    const sheet = doc.sheetsByTitle[tableName];
+    if (!sheet) {
+      return [];
+    }
+
+    const rows = await sheet.getRows<T>();
+    return rows;
+  } catch (error) {
+    console.error("Error loading document", error);
     return [];
   }
-
-  const rows = await sheet.getRows<T>();
-  return rows;
 }
 
 const spreadsheetService = {

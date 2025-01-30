@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import gDriveService from "@/lib/google/drive";
+import { getLinkFromFolderId } from "@/lib/utils";
 import { api } from "@/trpc/server";
 import {
   Archive,
@@ -17,7 +17,6 @@ export default async function ApplicationsList({
   folderId: string;
 }>) {
   const applications = await api.applications.getAllApplications({ folderId });
-
   return (
     <section className="flex flex-col gap-4 p-8">
       <h2 className="text-2xl font-semibold">Applications</h2>
@@ -65,10 +64,7 @@ function ApplicationItem(application: Readonly<Application>) {
           </Button>
         ) : null}
         <Button variant="ghost" asChild title="Document's Folder">
-          <a
-            href={gDriveService.getLinkFromFolderId(application.folderId)}
-            target="_blank"
-          >
+          <a href={getLinkFromFolderId(application.folderId)} target="_blank">
             <SquareArrowOutUpRight />
           </a>
         </Button>

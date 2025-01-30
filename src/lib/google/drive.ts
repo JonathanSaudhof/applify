@@ -26,14 +26,27 @@ async function createNewFolder(
   return folder.data.id;
 }
 
-async function getAllFoldersInFolder(folderId: string, filterTrashed = false) {
+async function getAllFoldersInFolder(
+  folderId: string,
+  filterTrashed = false,
+  filterFolderId?: string,
+) {
   const drive = await getAuthenticatedDrive();
 
+  const queryString = `'${folderId}' in parents and mimeType='application/vnd.google-apps.folder' ${filterTrashed ? " and trashed=false" : ""}`;
+
   const folders = await drive.files.list({
-    q: `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = ${filterTrashed ? "true" : "false"}`,
+    q: queryString,
     fields: "files(id, name, mimeType)",
   });
 
+  if (!folders.data.files) {
+    return [];
+  }
+
+  if (filterFolderId) {
+    return folders.data.files.filter((folder) => folder.id !== filterFolderId);
+  }
   return folders.data.files;
 }
 async function getFileInFolderByName(folderId: string, fileName: string) {
@@ -71,10 +84,6 @@ async function getDocumentById(documentId: string) {
   }
 }
 
-function getLinkFromFolderId(folderId: string) {
-  return `https://drive.google.com/drive/folders/${folderId}`;
-}
-
 const gDriveService = {
   getFolderInformation,
   getDocumentById,
@@ -83,7 +92,6 @@ const gDriveService = {
   createNewFolder,
   getAllFoldersInFolder,
   getFileInFolderByName,
-  getLinkFromFolderId,
 };
 
 export default gDriveService;

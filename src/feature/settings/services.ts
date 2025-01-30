@@ -1,18 +1,11 @@
 "use server";
 
 import gDriveService from "@/lib/google/drive";
+import { ConfigFileSchema, ConfigSchema, type Config } from "./model/config";
 
-export async function getAllFilesInFolder(folderId?: string) {
-  const drive = await gDriveService.getAuthenticatedDrive();
-
+export async function getAllFilesInFolder(folderId: string) {
   try {
-    const res = await drive.files.list({
-      q: `'${folderId ? folderId : "root"}' in parents`,
-      fields: "nextPageToken,files(id, name, mimeType)",
-      orderBy: "folder",
-    });
-
-    return res.data.files;
+    return await gDriveService.getAllFoldersInFolder(folderId, true);
   } catch (error) {
     throw error;
   }
@@ -36,15 +29,9 @@ export async function downloadFile(fileId: string) {
   }
 }
 
-export type Config = {
-  id: string;
-  folderId: string | null;
-  defaultTemplateDocId: string | null;
-};
-
 const CONFIG_FILE_NAME = "config.json";
 
-export async function getOrCreateConfigFile() {
+export async function getOrCreateConfigFile(): Promise<Config> {
   const configFile = await getConfigFile();
 
   if (!configFile) {
@@ -54,7 +41,7 @@ export async function getOrCreateConfigFile() {
   return configFile;
 }
 
-export async function getConfigFile() {
+export async function getConfigFile(): Promise<Config | null> {
   const drive = await gDriveService.getAuthenticatedDrive();
 
   try {
@@ -68,8 +55,8 @@ export async function getConfigFile() {
     if (!configFile?.id) {
       return null;
     }
-    const config = await getFileById(configFile?.id);
-    return { id: configFile.id, ...config } as Config;
+    const config = ConfigFileSchema.parse(await getFileById(configFile?.id));
+    return { ...config, id: configFile.id };
   } catch (error) {
     console.error(error);
     return null;
@@ -87,14 +74,18 @@ export async function createConfigFile(): Promise<Config> {
     },
     media: {
       mimeType: "application/json",
-      body: JSON.stringify({
-        folderId: null,
-        defaultTemplateDocId: "",
-      }),
+      body: JSON.stringify({}),
     },
   });
 
-  return { id: res.data.id!, folderId: null, defaultTemplateDocId: null };
+  const config = ConfigSchema.parse({
+    id: res.data.id!,
+    baseFolder: null,
+    templateFolder: null,
+    templates: [],
+  });
+
+  return config;
 }
 
 export async function getFileById(fileId: string | null) {
@@ -109,7 +100,7 @@ export async function getFileById(fileId: string | null) {
       alt: "media",
     });
 
-    return fileContent.data;
+    return { ...fileContent.data };
   } catch (error) {
     console.error(error);
     return null;
