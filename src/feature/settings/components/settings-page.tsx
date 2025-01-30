@@ -30,7 +30,7 @@ export function SettingsPage({
     },
   });
 
-  const handleBaseFolderUpdate = async (e: PickedEvent) => {
+  const handleBaseFolderUpdate = (e: PickedEvent) => {
     if (e.detail.docs.length > 1) {
       throw new Error("Only one folder can be selected");
     }
@@ -42,7 +42,7 @@ export function SettingsPage({
       throw new Error("Config is not loaded or has no config Id");
     }
 
-    await mutation.mutateAsync({
+    mutation.mutate({
       id: config.id,
       baseFolder: {
         parent: e.detail.docs[0].parentId,
@@ -111,6 +111,7 @@ export function SettingsPage({
   return (
     <PageContainer>
       <h1 className="text-2xl">Settings</h1>
+      {mutation.isPending && <div>Loading...</div>}
       <SettingsSection>
         <SettingsContent icon={<FolderIcon />}>
           <SettingsTitle>Base folder</SettingsTitle>
