@@ -22,34 +22,12 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const handleRefresh = async () => {
-    "use server";
-    await invalidateApplicationsList();
-  };
-
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
       <body>
         <SessionProvider>
           <TRPCReactProvider>
-            <HydrateClient>
-              <header className="flex justify-between border-b-2 px-8 py-4">
-                <Link href="/">
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl">🚀</span>
-                    <h1 className="text-2xl font-semibold">Applify</h1>
-                  </div>
-                </Link>
-                <div className="flex items-center gap-4">
-                  <Button variant="outline" onClick={handleRefresh}>
-                    <RefreshCw />
-                  </Button>
-                  <CreateApplication />
-                  <Menu />
-                </div>
-              </header>
-              {children}
-            </HydrateClient>
+            <HydrateClient>{children}</HydrateClient>
           </TRPCReactProvider>
         </SessionProvider>
       </body>

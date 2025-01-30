@@ -1,3 +1,4 @@
+import ApplicationLayout from "@/feature/application/components/application-layout";
 import ApplicationsList, {
   ApplicationListSkeleton,
 } from "@/feature/application/components/application-list";
@@ -9,6 +10,7 @@ export default async function Home() {
 
   return (
     <HydrateClient>
+      <ApplicationLayout />
       <main className="">
         {config?.baseFolder ? (
           <Suspense fallback={<ApplicationListSkeleton />} key={Math.random()}>

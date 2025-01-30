@@ -7,6 +7,7 @@ import { api } from "@/trpc/react";
 import { FileIcon, FolderIcon, SquareArrowOutUpRight } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { type PropsWithChildren } from "react";
 import type { Config, TemplateType } from "../model/config";
 import { FilePicker, type PickedEvent } from "./file-picker";
 
@@ -22,7 +23,6 @@ export function SettingsPage({
 
   const mutation = api.config.updateConfigFile.useMutation({
     onSuccess: () => {
-      console.log("Config updated");
       router.refresh();
     },
     onError: (error) => {
@@ -111,18 +111,14 @@ export function SettingsPage({
   return (
     <PageContainer>
       <h1 className="text-2xl">Settings</h1>
-
-      <div className="flex items-center justify-between gap-2 rounded border p-4">
-        <div className="flex items-start gap-4">
-          <FolderIcon />
-          <div>
-            <h2 className="text font-semibold">Base folder</h2>
-            <p className="text-sm font-light">
-              Choose where to store all the applications.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
+      <SettingsSection>
+        <SettingsContent icon={<FolderIcon />}>
+          <SettingsTitle>Base folder</SettingsTitle>
+          <SettingsDescription>
+            Choose where to store all the applications.
+          </SettingsDescription>
+        </SettingsContent>
+        <SettingsControls>
           {config.baseFolder && (
             <Button variant="outline" asChild title="Document's Folder">
               <a
@@ -141,20 +137,16 @@ export function SettingsPage({
             onPicked={handleBaseFolderUpdate}
             trigger={<Button>Select</Button>}
           />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-2 rounded border p-4">
-        <div className="flex items-start gap-4">
-          <FolderIcon />
-          <div>
-            <h2 className="text font-semibold">Template folder</h2>
-            <p className="text-sm font-light">
-              Choose you store all templates.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
+        </SettingsControls>
+      </SettingsSection>
+      <SettingsSection>
+        <SettingsContent icon={<FolderIcon />}>
+          <SettingsTitle>Template folder</SettingsTitle>
+          <SettingsDescription>
+            Choose you store all templates.
+          </SettingsDescription>
+        </SettingsContent>
+        <SettingsControls>
           {config.templateFolder && (
             <Button variant="outline" asChild title="Document's Folder">
               <a
@@ -174,21 +166,17 @@ export function SettingsPage({
             onPicked={handleTemplateFolderUpdate}
             trigger={<Button>Select</Button>}
           />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-2 rounded border p-4">
-        <div className="flex items-start gap-4">
-          <FileIcon />
-          <div>
-            <h2 className="text font-semibold">Default CV Template</h2>
-            <p className="text-sm font-light">
-              If you create a new application, this Google Doc template will be
-              used for your CV.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
+        </SettingsControls>
+      </SettingsSection>
+      <SettingsSection>
+        <SettingsContent icon={<FileIcon />}>
+          <SettingsTitle>Default CV Template</SettingsTitle>
+          <SettingsDescription>
+            If you create a new application, this Google Doc template will be
+            used for your CV.
+          </SettingsDescription>
+        </SettingsContent>
+        <SettingsControls>
           {cvTemplate && (
             <Button variant="outline" asChild title="Document's Folder">
               <a href={getLinkFromDocumentId(cvTemplate.id)} target="_blank">
@@ -205,23 +193,17 @@ export function SettingsPage({
             onPicked={templateUpdateHandlerFactory("cv")}
             disabled={!config.baseFolder || !config.templateFolder}
           />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-2 rounded border p-4">
-        <div className="flex items-start gap-4">
-          <FileIcon />
-          <div>
-            <h2 className="text font-semibold">
-              Default Cover Letter Template
-            </h2>
-            <p className="text-sm font-light">
-              If you create a new application, this Google Doc template will be
-              used for your cover letter.
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-6">
+        </SettingsControls>
+      </SettingsSection>
+      <SettingsSection>
+        <SettingsContent icon={<FileIcon />}>
+          <SettingsTitle>Default Cover Letter Template</SettingsTitle>
+          <SettingsDescription>
+            If you create a new application, this Google Doc template will be
+            used for your cover letter.
+          </SettingsDescription>
+        </SettingsContent>
+        <SettingsControls>
           {coverLetterTemplate && (
             <Button variant="outline" asChild title="Document's Folder">
               <a
@@ -241,8 +223,50 @@ export function SettingsPage({
             parent={config.templateFolder?.id}
             disabled={!config.baseFolder || !config.templateFolder}
           />
-        </div>
-      </div>
+        </SettingsControls>
+      </SettingsSection>
     </PageContainer>
   );
+}
+
+function SettingsSection({ children }: PropsWithChildren) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded border p-4">
+      {children}
+    </div>
+  );
+}
+
+function SettingsContent({
+  children,
+  icon,
+}: PropsWithChildren<{ icon?: React.ReactElement }>) {
+  return (
+    <div className="flex items-start gap-4">
+      {icon ? (
+        <>
+          {icon}
+          <div>{children}</div>
+        </>
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
+function SettingsTitle({ children }: PropsWithChildren) {
+  return (
+    <div>
+      <h2 className="text font-semibold">{children}</h2>
+    </div>
+  );
+}
+
+function SettingsDescription({ children }: PropsWithChildren) {
+  return <p className="text-sm font-light">{children}</p>;
+}
+
+function SettingsControls({ children }: PropsWithChildren) {
+  return <div className="flex items-center gap-6">{children}</div>;
 }
