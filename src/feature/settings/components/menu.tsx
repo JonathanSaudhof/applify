@@ -19,7 +19,7 @@ export function Menu() {
         <DropdownMenuLabel>Menu</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link href="/templates" className="flex items-center gap-2">
+          <Link href="/settings" className="flex items-center gap-2">
             <File />
             Choose Template
           </Link>
