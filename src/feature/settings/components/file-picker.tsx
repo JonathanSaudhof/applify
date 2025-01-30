@@ -111,6 +111,7 @@ export function FilePicker({
   onPicked,
   mimeType,
   disabled,
+  multiselect,
 }: {
   appId: string;
   oauthToken: string;
@@ -119,6 +120,7 @@ export function FilePicker({
   onPicked?: (e: PickedEvent) => void;
   mimeType: GoogleMimeType;
   disabled?: boolean;
+  multiselect?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -132,6 +134,7 @@ export function FilePicker({
         <FilePickerContainer
           app-id={appId}
           oauth-token={oauthToken}
+          multiselect={multiselect}
           onPicked={(e) => {
             if (onPicked) {
               onPicked(e);
