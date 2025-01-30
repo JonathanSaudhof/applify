@@ -33,8 +33,10 @@ async function getAllFoldersInFolder(
 ) {
   const drive = await getAuthenticatedDrive();
 
+  const queryString = `'${folderId}' in parents and mimeType='application/vnd.google-apps.folder' ${filterTrashed ? " and trashed=false" : ""}`;
+
   const folders = await drive.files.list({
-    q: `'${folderId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = ${filterTrashed ? "false" : "true"}`,
+    q: queryString,
     fields: "files(id, name, mimeType)",
   });
 

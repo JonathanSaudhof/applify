@@ -205,7 +205,6 @@ export async function getMetaDataInFolder(folderId: string): Promise<Metadata> {
   const file = await gDriveService.getFileInFolderByName(folderId, "metadata");
 
   if (!file?.id) {
-    // console.error("Metadata file not found in folder: ", folderId);
     return {
       jobDescriptionUrl: null,
       jobTitle: null,
