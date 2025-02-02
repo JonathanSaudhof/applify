@@ -3,6 +3,7 @@ import spreadsheetService from "@/lib/google/spreadsheet";
 import cacheTags from "@/server/api/cache-tags";
 import { auth } from "@/server/auth";
 import { unstable_cache } from "next/cache";
+import type { CompanyRepository } from "../models/company/company-repository-gdrive";
 import {
   ApplicationSchema,
   ApplicationStateSchema,
@@ -21,26 +22,19 @@ const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
     },
   );
 
-export async function createNewApplication({
-  data,
-  templates,
-  baseFolderId,
-}: CreateApplicationRequest): Promise<Application | null> {
+export async function createNewApplication(
+  { data, templates, baseFolderId }: CreateApplicationRequest,
+  companyRepository: CompanyRepository,
+): Promise<Application | null> {
   try {
     const session = await auth();
-    const folderId = await gDriveService.createNewFolder(
-      data.companyName,
-      baseFolderId,
-    );
 
-    if (!folderId) {
-      throw new Error("Failed to create folder");
-    }
+    const company = await companyRepository.createCompany(data.companyName);
 
     const allTemplates = templates.map(({ id, prefix }) =>
       gDriveService.copyDocument({
         sourceDocId: id,
-        folderId,
+        folderId: company.id,
         documentName: `${prefix.toUpperCase()}_${session.user?.name?.replace(" ", "_")}_${new Date().toLocaleDateString()}`,
       }),
     );
@@ -48,14 +42,14 @@ export async function createNewApplication({
     await Promise.all(allTemplates);
 
     await createMetadataSheet({
-      folderId,
+      folderId: company.id,
       jobTitle: data.jobTitle,
       jobDescriptionUrl: data.jobDescriptionUrl,
     });
 
     return ApplicationSchema.parse({
       ...data,
-      folderId,
+      folderId: company.id,
     });
   } catch (error) {
     console.error(error);
