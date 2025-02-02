@@ -4,14 +4,8 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 
-import { Button } from "@/components/ui/button";
-import { invalidateApplicationsList } from "@/feature/application/components/actions/revalidation";
-import CreateApplication from "@/feature/application/components/create-application";
-import { Menu } from "@/feature/settings/components/menu";
 import { TRPCReactProvider } from "@/trpc/react";
 import { HydrateClient } from "@/trpc/server";
-import { RefreshCw } from "lucide-react";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Applify",
