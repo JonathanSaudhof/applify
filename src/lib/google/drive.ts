@@ -26,6 +26,28 @@ async function createNewFolder(
   return folder.data.id;
 }
 
+async function copyDocument({
+  sourceDocId: templateDocId,
+  folderId,
+  documentName,
+}: {
+  sourceDocId: string;
+  folderId: string;
+  documentName: string;
+}) {
+  const drive = await getAuthenticatedDrive();
+
+  const document = await drive.files.copy({
+    fileId: templateDocId,
+    requestBody: {
+      parents: [folderId],
+      name: documentName,
+    },
+  });
+
+  return document.data.id;
+}
+
 async function getAllFoldersInFolder(
   folderId: string,
   filterTrashed = false,
@@ -85,13 +107,14 @@ async function getDocumentById(documentId: string) {
 }
 
 const gDriveService = {
-  getFolderInformation,
-  getDocumentById,
-  getAuthenticatedDrive,
-  getAuthenticatedDocument,
+  copyDocument,
   createNewFolder,
   getAllFoldersInFolder,
+  getAuthenticatedDocument,
+  getAuthenticatedDrive,
+  getDocumentById,
   getFileInFolderByName,
+  getFolderInformation,
 };
 
 export default gDriveService;

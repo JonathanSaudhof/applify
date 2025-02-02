@@ -9,7 +9,7 @@ import {
   getApplicationById,
   getMetaDataInFolder,
   updateApplicationState,
-} from "./applicationService";
+} from "./application-service";
 
 interface ApplicationService {
   createNewApplication: (

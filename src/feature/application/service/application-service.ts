@@ -38,8 +38,8 @@ export async function createNewApplication({
     }
 
     const allTemplates = templates.map(({ id, prefix }) =>
-      copyTemplateDocument({
-        templateDocId: id,
+      gDriveService.copyDocument({
+        sourceDocId: id,
         folderId,
         documentName: `${prefix.toUpperCase()}_${session.user?.name?.replace(" ", "_")}_${new Date().toLocaleDateString()}`,
       }),
@@ -61,28 +61,6 @@ export async function createNewApplication({
     console.error(error);
     return null;
   }
-}
-
-export async function copyTemplateDocument({
-  templateDocId,
-  folderId,
-  documentName,
-}: {
-  templateDocId: string;
-  folderId: string;
-  documentName: string;
-}) {
-  const drive = await gDriveService.getAuthenticatedDrive();
-
-  const document = await drive.files.copy({
-    fileId: templateDocId,
-    requestBody: {
-      parents: [folderId],
-      name: documentName,
-    },
-  });
-
-  return document.data.id;
 }
 
 ////////////// Metadata Sheet //////////////
