@@ -3,10 +3,12 @@ import spreadsheetService from "@/lib/google/spreadsheet";
 import cacheTags from "@/server/api/cache-tags";
 import { auth } from "@/server/auth";
 import { unstable_cache } from "next/cache";
-import type { CompanyRepository } from "../models/company/company-repository-gdrive";
+
+import type { CompanyRepository } from "../models/company/company-repository.interface";
+import type { ApplicationDocumentRepository } from "../models/documents/document-repository.interface";
+import type { JobRepository } from "../models/job/job-repository.interface";
 import {
   ApplicationSchema,
-  ApplicationStateSchema,
   type Application,
   type ApplicationState,
   type CreateApplicationRequest,
@@ -23,29 +25,43 @@ const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
   );
 
 export async function createNewApplication(
-  { data, templates, baseFolderId }: CreateApplicationRequest,
+  { data, templates }: CreateApplicationRequest,
   companyRepository: CompanyRepository,
+  jobRepository: JobRepository,
+  documentRepository: ApplicationDocumentRepository,
 ): Promise<Application | null> {
   try {
     const session = await auth();
 
     const company = await companyRepository.createCompany(data.companyName);
 
-    const allTemplates = templates.map(({ id, prefix }) =>
-      gDriveService.copyDocument({
-        sourceDocId: id,
-        folderId: company.id,
-        documentName: `${prefix.toUpperCase()}_${session.user?.name?.replace(" ", "_")}_${new Date().toLocaleDateString()}`,
-      }),
-    );
+    const job = await jobRepository.createJob({
+      title: data.jobTitle,
+      companyId: company.id,
+      jobDescriptionRef: data.jobDescriptionUrl,
+    });
+
+    const allTemplates = templates.map(async ({ id, prefix }) => {
+      const template = await documentRepository.getDocumentById(id);
+      if (!template) {
+        throw new Error(`Template with id ${id} not found`);
+      }
+
+      const isSuccess = await documentRepository.createDocument({
+        title: `${prefix.toUpperCase()}_${session.user?.name?.replace(" ", "_")}_${new Date().toLocaleDateString()}`,
+        jobId: job.id,
+        content: template.content,
+        type: template.type,
+      });
+
+      if (!isSuccess) {
+        throw new Error(
+          `Failed to create document from template with id ${id}`,
+        );
+      }
+    });
 
     await Promise.all(allTemplates);
-
-    await createMetadataSheet({
-      folderId: company.id,
-      jobTitle: data.jobTitle,
-      jobDescriptionUrl: data.jobDescriptionUrl,
-    });
 
     return ApplicationSchema.parse({
       ...data,
@@ -55,55 +71,6 @@ export async function createNewApplication(
     console.error(error);
     return null;
   }
-}
-
-////////////// Metadata Sheet //////////////
-async function createMetadataSheet({
-  folderId,
-  jobTitle,
-  jobDescriptionUrl,
-}: {
-  folderId: string;
-  jobTitle: string;
-  jobDescriptionUrl: string;
-}) {
-  const sheetName = "metadata";
-  const spreadsheetId = await spreadsheetService.createSpreadSheet(
-    sheetName,
-    folderId,
-  );
-
-  if (!spreadsheetId) {
-    throw new Error("Failed to create metadata sheet");
-  }
-
-  await createOverviewTable(spreadsheetId, { jobTitle, jobDescriptionUrl });
-}
-
-async function createOverviewTable(
-  spreadSheetId: string,
-  data: { jobDescriptionUrl: string; jobTitle: string },
-) {
-  const OVERVIEW_SHEET_NAME = "overview";
-  const columns = ["link", "title", "state"];
-
-  const table = await spreadsheetService.createTable({
-    spreadSheetId,
-    title: OVERVIEW_SHEET_NAME,
-    columns,
-  });
-
-  if (!table) {
-    throw new Error("Failed to create overview table");
-  }
-
-  await table.addRows([
-    {
-      link: data.jobDescriptionUrl,
-      title: data.jobTitle,
-      state: ApplicationStateSchema.enum.created,
-    },
-  ]);
 }
 
 export async function getAllApplications({

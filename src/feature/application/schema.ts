@@ -19,7 +19,6 @@ export type CreateApplication = z.infer<typeof CreateApplicationSchema>;
 
 export const CreateApplicationRequestSchema = z.object({
   data: CreateApplicationSchema,
-  baseFolderId: z.string(),
   templates: z.array(z.object({ id: z.string(), prefix: z.string() })),
 });
 
