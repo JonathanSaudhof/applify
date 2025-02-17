@@ -10,6 +10,7 @@ import {
   type ApplicationState,
   type CreateApplicationRequest,
 } from "../schema";
+import { type FileInfo } from "@/lib/google/file-service.interface";
 
 const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
   unstable_cache(
@@ -28,19 +29,34 @@ export async function createNewApplication({
 }: CreateApplicationRequest): Promise<Application | null> {
   try {
     const session = await auth();
-    const folderId = await gDriveService.createNewFolder(
-      data.companyName,
-      baseFolderId,
+
+    let companyFolder: FileInfo | null =
+      await gDriveService.getFolderInfoByName(data.companyName, baseFolderId);
+
+    if (!companyFolder) {
+      companyFolder = await gDriveService.createNewFolder(
+        data.companyName,
+        baseFolderId,
+      );
+    }
+
+    if (!companyFolder) {
+      throw new Error("Failed to create folder");
+    }
+
+    const jobFolder = await gDriveService.createNewFolder(
+      data.jobTitle,
+      companyFolder.id,
     );
 
-    if (!folderId) {
+    if (!jobFolder) {
       throw new Error("Failed to create folder");
     }
 
     const allTemplates = templates.map(({ id, prefix }) =>
       copyTemplateDocument({
         templateDocId: id,
-        folderId,
+        folderId: jobFolder.id,
         documentName: `${prefix.toUpperCase()}_${session.user?.name?.replace(" ", "_")}_${new Date().toLocaleDateString()}`,
       }),
     );
@@ -48,14 +64,14 @@ export async function createNewApplication({
     await Promise.all(allTemplates);
 
     await createMetadataSheet({
-      folderId,
+      folderId: jobFolder.id,
       jobTitle: data.jobTitle,
       jobDescriptionUrl: data.jobDescriptionUrl,
     });
 
     return ApplicationSchema.parse({
       ...data,
-      folderId,
+      folderId: jobFolder.id,
     });
   } catch (error) {
     console.error(error);
@@ -155,7 +171,7 @@ export async function getAllApplications({
 
   const metadataFiles = await Promise.all(
     rawApplications.map((application) =>
-      cachedGetMetaDataInFolder(application.id!, userId)(),
+      cachedGetMetaDataInFolder(application.id, userId)(),
     ),
   );
 
@@ -163,7 +179,7 @@ export async function getAllApplications({
     (application, index) => {
       const metadata = metadataFiles[index];
       return {
-        folderId: application.id!,
+        folderId: application.id,
         companyName: application.name ?? "",
         ...metadata!,
       };
@@ -178,13 +194,18 @@ export async function getApplicationById({
 }: {
   applicationId: string;
 }): Promise<Application> {
-  const application = await gDriveService.getFolderInformation(applicationId);
+  const applicationFolder =
+    await gDriveService.getFolderInformation(applicationId);
 
-  const metadata = await getMetaDataInFolder(applicationId);
+  if (!applicationFolder) {
+    throw new Error("Application folder not found");
+  }
+
+  const metadata = await getMetaDataInFolder(applicationFolder?.id);
 
   return {
-    folderId: application.id!,
-    companyName: application.name ?? "",
+    folderId: applicationFolder.id,
+    companyName: applicationFolder.name ?? "",
     ...metadata,
   };
 }
