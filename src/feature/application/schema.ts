@@ -20,6 +20,10 @@ export type CreateApplication = z.infer<typeof CreateApplicationSchema>;
 export const CreateApplicationRequestSchema = z.object({
   data: CreateApplicationSchema,
   baseFolderId: z.string(),
+  user: z.object({
+    id: z.string().uuid(),
+    name: z.string(),
+  }),
   templates: z.array(z.object({ id: z.string(), prefix: z.string() })),
 });
 
@@ -28,11 +32,10 @@ export type CreateApplicationRequest = z.infer<
 >;
 
 export const ApplicationSchema = z.object({
-  folderId: z.string(),
+  id: z.string(),
   jobTitle: z.string().nullable(),
   jobDescriptionUrl: z.string().url().nullable(),
   applicationState: ApplicationStateSchema.nullable(),
-  companyName: z.string(),
 });
 
 export type Application = z.infer<typeof ApplicationSchema>;
@@ -59,3 +62,13 @@ export const ApplicationEventSchema = z.union([
 ]);
 
 export type ApplicationEvent = z.infer<typeof ApplicationEventSchema>;
+
+const CompanyListItem = z.object({
+  id: z.string(),
+  name: z.string(),
+  applications: z.array(ApplicationSchema),
+});
+
+const CompanyListSchema = z.array(CompanyListItem);
+
+export type CompanyList = z.infer<typeof CompanyListSchema>;
