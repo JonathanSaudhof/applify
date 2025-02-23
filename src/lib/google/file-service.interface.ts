@@ -27,4 +27,5 @@ export interface IFileService {
     folderName: string,
     parentFolderId: string,
   ) => Promise<FileInfo | null>;
+  getFolderById(folderId: string): Promise<FileInfo | null>;
 }

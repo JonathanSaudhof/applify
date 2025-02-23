@@ -11,6 +11,8 @@ import {
   type CreateApplicationRequest,
 } from "../schema";
 import { type FileInfo } from "@/lib/google/file-service.interface";
+import { createJobRepository } from "../job/job.repository";
+import { Company, companyRepositoryFactory } from "@/feature/company/company.repository";
 
 const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
   unstable_cache(
@@ -22,18 +24,46 @@ const cachedGetMetaDataInFolder = (applicationId: string, userId: string) =>
     },
   );
 
+
+type CreateApplicationCommandWithCompanyId = {
+  jobTitle: string;
+  jobDescriptionUrl: string;
+  applicationState: ApplicationState;
+  companyId: string;
+  companyName: undefined;
+}  
+
+type CreateApplicationCommandWithCompanyName = {
+  jobTitle: string;
+  jobDescriptionUrl: string;
+  applicationState: ApplicationState;
+  companyId: undefined;
+  companyName: string;
+}
+
+type CreateApplicationCommand = CreateApplicationCommandWithCompanyId | CreateApplicationCommandWithCompanyName;
+
+
+export
+
 export async function createNewApplication({
-  data,
-  templates,
-  baseFolderId,
-}: CreateApplicationRequest): Promise<Application | null> {
+jobTitle,
+jobDescriptionUrl,
+applicationState,
+companyId,companyName
+}: CreateApplicationCommand): Promise<Application | null> {
   try {
     const session = await auth();
 
-    let companyFolder: FileInfo | null =
-      await gDriveService.getFolderInfoByName(data.companyName, baseFolderId);
+    const companyRepository = companyRepositoryFactory({ baseFolderId });
+    const jobRepository = createJobRepository({ baseFolderId });
 
-    if (!companyFolder) {
+    let company: Company = await companyRepository.getAllCompanies.(
+      data.companyName,
+      baseFolderId,
+    );
+
+    if (!company) {
       companyFolder = await gDriveService.createNewFolder(
         data.companyName,
         baseFolderId,

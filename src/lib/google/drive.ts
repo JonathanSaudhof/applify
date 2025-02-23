@@ -137,6 +137,22 @@ async function getFolderInfoByName(
   }
 }
 
+async function getFolderById(folderId: string): Promise<FileInfo | null> {
+  const drive = await getAuthenticatedDrive();
+
+  try {
+    const res = await drive.files.get({
+      fileId: folderId,
+      fields: "id, name",
+    });
+
+    return { id: res.data.id!, name: res.data.name! };
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
 const gDriveService: IFileService = {
   getFolderInformation,
   getDocumentById,
@@ -146,6 +162,7 @@ const gDriveService: IFileService = {
   getAllFoldersInFolder,
   getFileInFolderByName,
   getFolderInfoByName,
+  getFolderById,
 };
 
 export default gDriveService;
